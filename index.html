@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <title>القائمة الديناميكية</title>
+    <style>
+        * { box-sizing: border-box; scroll-behavior: smooth; }
+        .smart-sticky { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; background: rgba(240, 241, 247, 0.92); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(0,0,0,0.07); box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+        .nav-inner { max-width: 1200px; margin: 0 auto; padding: 12px 16px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+        .nav-logo { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; }
+        .nav-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; list-style: none; padding: 0; }
+        .nav-links li a { display: block; background: white; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 500; color: #333; text-decoration: none; box-shadow: 0 1px 3px rgba(0,0,0,0.08); transition: 0.2s; }
+        .nav-links li a:hover { background: #333; color: white; }
+        .hero { width: 100%; height: 100vh; object-fit: cover; display: block; }
+        .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; min-height: 50px; }
+        .card { border: 1px solid #e5e7eb; border-radius: 16px; overflow: hidden; background: white; text-align: center; transition: 0.3s; }
+        .card:hover { transform: translateY(-5px); }
+        .card-img-wrap { height: 240px; overflow: hidden; background: #eee; }
+        .card-img-wrap img { width: 100%; height: 100%; object-fit: cover; }
+        .card-body { padding: 16px 12px; }
+        .section-title { font-size: 26px; font-weight: 700; margin: 32px 0 16px; color: #1a1a1a; border-right: 4px solid #333; padding-right: 15px; }
+        .main-container { max-width: 1200px; margin: 0 auto; padding: 0 16px 40px; }
+    </style>
+</head>
+<body class="bg-[#f0f1f7]">
+
+    <header class="smart-sticky">
+        <div class="nav-inner">
+            <img class="nav-logo" src="https://t3.ftcdn.net/jpg/18/07/24/30/360_F_1807243021_nICpcKKGWycTrlI15ahzkC5IBOicrWDi.jpg" alt="Logo">
+            <ul class="nav-links">
+                <li><a href="#Sandwiches">سندوتشات</a></li>
+                <li><a href="#hot-coffee">القهوة الساخنة</a></li>
+                <li><a href="#drip-coffee">القهوة المقطرة</a></li>
+                <li><a href="#iced-coffee">القهوة الباردة</a></li>
+                <li><a href="#sweet">سويت</a></li>
+                <li><a href="#baked-goods">مخبوزات</a></li>
+            </ul>
+        </div>
+    </header>
+
+    <div class="hero-wrap">
+        <img class="hero" src="https://images.unsplash.com/photo-1453614512568-c4024d13c247?q=80&w=3132&auto=format&fit=crop" alt="Hero">
+    </div>
+
+    <div class="main-container">
+        <section id="Sandwiches"><h1 class="section-title">سندوتشات</h1><div id="Sandwiches-container" class="cards-grid"></div></section>
+        <section id="hot-coffee"><h1 class="section-title">القهوة الساخنة</h1><div id="hot-coffee-container" class="cards-grid"></div></section>
+        <section id="drip-coffee"><h1 class="section-title">القهوة المقطرة</h1><div id="drip-coffee-container" class="cards-grid"></div></section>
+        <section id="iced-coffee"><h1 class="section-title">القهوة الباردة</h1><div id="iced-coffee-container" class="cards-grid"></div></section>
+        <section id="sweet"><h1 class="section-title">سويت</h1><div id="sweet-container" class="cards-grid"></div></section>
+        <section id="baked-goods"><h1 class="section-title">مخبوزات</h1><div id="baked-goods-container" class="cards-grid"></div></section>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/contentful@latest/dist/contentful.browser.min.js"></script>
+    <script>
+        const client = contentful.createClient({
+            space: 'v20lhzpdj9zy', // Space ID الخاص بك
+            accessToken: 'KHHIgc5gr53h2NXQs2c7a72dNhbBoKJDaGY0Vsvt9tg' // التوكن الصحيح الخاص بك
+        });
+
+        client.getEntries({ content_type: 'product' })
+        .then((response) => {
+            response.items.forEach(item => {
+                const f = item.fields;
+                // نختار الحاوية بناءً على القسم (Category) المكتوب في لوحة التحكم
+                // ملاحظة: تأكد من كتابة القسم في Contentful بنفس مسميات الـ IDs أعلاه (مثل: hot-coffee)
+                const containerId = `${f.category}-container`;
+                const container = document.getElementById(containerId);
+
+                if (container) {
+                    container.innerHTML += `
+                        <div class="card">
+                            <div class="card-img-wrap">
+                                <img src="${f.image ? f.image.fields.file.url : 'https://via.placeholder.com/300'}" alt="${f.title}">
+                            </div>
+                            <div class="card-body">
+                                <h2>${f.title}</h2>
+                                <p class="desc">${f.description || ''}</p>
+                                <p class="price">${f.price || '--'} ﷼</p>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+        })
+        .catch(err => console.error("Error fetching data:", err));
+    </script>
+</body>
+</html>
